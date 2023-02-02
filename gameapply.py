@@ -129,17 +129,28 @@ def reconstruct_path(came_from, start, goal):
     path.reverse()
     return path
 
+def base_grid(screen, map):
+    for x in range(GRID_SIZE):
+            for y in range(GRID_SIZE):
+                rect = pygame.Rect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
+                if map[x][y] == 1:
+                    pygame.draw.rect(screen, BLACK, rect)
+                else:
+                    pygame.draw.rect(screen, WHITE, rect)
+                    
+                pygame.draw.rect(screen, BLACK, rect, 1)
 
 def draw_grid(screen, map, start, goal, came_from, path):
-    for x in range(GRID_SIZE):
-        for y in range(GRID_SIZE):
-            rect = pygame.Rect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
-            if map[x][y] == 1:
-                pygame.draw.rect(screen, BLACK, rect)
-            else:
-                pygame.draw.rect(screen, WHITE, rect)
+    # for x in range(GRID_SIZE):
+    #     for y in range(GRID_SIZE):
+    #         rect = pygame.Rect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
+    #         if map[x][y] == 1:
+    #             pygame.draw.rect(screen, BLACK, rect)
+    #         else:
+    #             pygame.draw.rect(screen, WHITE, rect)
                 
-            pygame.draw.rect(screen, BLACK, rect, 1)
+    #         pygame.draw.rect(screen, BLACK, rect, 1)
+    base_grid(screen, map)
             
     rect = pygame.Rect(start[0] * BLOCK_SIZE, start[1] * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
     pygame.draw.rect(screen, BLUE, rect)
@@ -178,25 +189,48 @@ def draw_grid(screen, map, start, goal, came_from, path):
         pygame.draw.line(screen, GREEN, (x1 * BLOCK_SIZE + BLOCK_SIZE // 2, y1 * BLOCK_SIZE + BLOCK_SIZE // 2),
                          (x2 * BLOCK_SIZE + BLOCK_SIZE // 2, y2 * BLOCK_SIZE + BLOCK_SIZE // 2), 5)
         pygame.display.update()
-        pygame.time.delay(10)   
+        pygame.time.delay(10)
         
-    # this part will be used to make the blue square move along the path
-    # create a new blue square in the next node and fill the old one with white
-    # then update the display
-    # then wait for 20 ms
+        
+        
     for i in range(len(path) - 1):
         node = path[i]
         next_node = path[i + 1]
         x1, y1 = node
         x2, y2 = next_node
+        # swap blue block with white block and black outline
         rect = pygame.Rect(x1 * BLOCK_SIZE, y1 * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
         pygame.draw.rect(screen, WHITE, rect)
         pygame.draw.rect(screen, BLACK, rect, 1)
-        
-        rect = pygame.Rect(x2 * BLOCK_SIZE, y2 * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
-        pygame.draw.rect(screen, BLUE, rect)
+        rect = pygame.Rect(x1 * BLOCK_SIZE, y1 * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
+        duration = .1 # seconds
+        start_pos = (x1 * BLOCK_SIZE, y1 * BLOCK_SIZE)
+        end_pos = (x2 * BLOCK_SIZE, y2 * BLOCK_SIZE)
+        for new_rect in interpolate_rect(rect, start_pos, end_pos, duration):
+            pygame.draw.rect(screen, BLUE, new_rect)
+            pygame.display.update()
+            pygame.time.delay(16)
+            
+        # after the update, let's call the draw_grid function to restore the grid 
+        # and draw the goal node in red again while setting the start node empty
+            if not i == len(path) - 1:
+                base_grid(screen, map)
+        # draw_grid(screen, map, , goal, came_from, path)
         pygame.display.update()
-        pygame.time.delay(40)
+
+        # pygame.display.update()
+        # pygame.time.delay(40)
+        
+def interpolate_rect(rect, start_pos, end_pos, duration):
+    start_time = time.time()
+    current_time = time.time()
+    while current_time - start_time < duration:
+        elapsed_time = current_time - start_time
+        progress = elapsed_time / duration
+        rect.x = int(start_pos[0] + (end_pos[0] - start_pos[0]) * progress)
+        rect.y = int(start_pos[1] + (end_pos[1] - start_pos[1]) * progress)
+        current_time = time.time()
+        yield rect
 
 def get_mouse_click(screen, map, message):
     pygame.draw.rect(screen, BLACK, (1010, 10, 200, 30))
