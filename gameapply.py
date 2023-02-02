@@ -1,13 +1,13 @@
 import pygame
 import random
 import heapq
+import time
 
-WIDTH = 500
-HEIGHT = 500
-GRID_SIZE = 100
+WIDTH = 1200
+HEIGHT = 1000
 OBSTACLE_PROBABILITY = 0.2
-BLOCK_SIZE = 50
-GRID_SIZE = 10
+BLOCK_SIZE = 25
+GRID_SIZE = 40
 NUM_OBSTACLES = 30
 
 WHITE = (255, 255, 255)
@@ -68,6 +68,21 @@ def neighbors(node, map):
         results.append((x, y - 1))
     if y < GRID_SIZE - 1 and map[x][y + 1] != 1:
         results.append((x, y + 1))
+
+    # diagonal up right if there is no obstacle up and right
+    if x < GRID_SIZE - 1 and y > 0 and map[x + 1][y - 1] != 1 and map[x + 1][y] != 1 and map[x][y - 1] != 1:
+        results.append((x + 1, y - 1))
+    # diagonal up left if there is no obstacle up and left
+    if x > 0 and y > 0 and map[x - 1][y - 1] != 1 and map[x - 1][y] != 1 and map[x][y - 1] != 1:
+        results.append((x - 1, y - 1))
+    # diagonal down right if there is no obstacle down and right
+    if x < GRID_SIZE - 1 and y < GRID_SIZE - 1 and map[x + 1][y + 1] != 1 and map[x + 1][y] != 1 and map[x][y + 1] != 1:
+        results.append((x + 1, y + 1))
+    # diagonal down left if there is no obstacle down and left
+    if x > 0 and y < GRID_SIZE - 1 and map[x - 1][y + 1] != 1 and map[x - 1][y] != 1 and map[x][y + 1] != 1:
+        results.append((x - 1, y + 1))
+    
+
     return results
 
 def heuristic(a, b):
@@ -105,10 +120,15 @@ def reconstruct_path(came_from, start, goal):
     current = goal
     path = [current]
     while current != start:
-        current = came_from[current]
-        path.append(current)
+        if current in came_from:
+            current = came_from[current]
+            path.append(current)
+        else:
+            print("Path not found")
+            return []
     path.reverse()
     return path
+
 
 def draw_grid(screen, map, start, goal, came_from, path):
     for x in range(GRID_SIZE):
@@ -120,22 +140,85 @@ def draw_grid(screen, map, start, goal, came_from, path):
                 pygame.draw.rect(screen, WHITE, rect)
                 
             pygame.draw.rect(screen, BLACK, rect, 1)
-
-    for node in came_from:
-        x, y = node
-        if came_from[node] is not None:
-            x2, y2 = came_from[node]
-            if (x2, y2) in path and (x, y) in path:
-                pygame.draw.line(screen, PURPLE, (x * BLOCK_SIZE + BLOCK_SIZE // 2, y * BLOCK_SIZE + BLOCK_SIZE // 2),
-                                 (x2 * BLOCK_SIZE + BLOCK_SIZE // 2, y2 * BLOCK_SIZE + BLOCK_SIZE // 2), 2)
-            else:
-                pygame.draw.line(screen, GREEN, (x * BLOCK_SIZE + BLOCK_SIZE // 2, y * BLOCK_SIZE + BLOCK_SIZE // 2),
-                                 (x2 * BLOCK_SIZE + BLOCK_SIZE // 2, y2 * BLOCK_SIZE + BLOCK_SIZE // 2), 2)
-
+            
     rect = pygame.Rect(start[0] * BLOCK_SIZE, start[1] * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
     pygame.draw.rect(screen, BLUE, rect)
     rect = pygame.Rect(goal[0] * BLOCK_SIZE, goal[1] * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
     pygame.draw.rect(screen, RED, rect)
+
+    # get time until goal is reached
+    
+    start_time = time.time()
+    for node in came_from:
+        x, y = node
+        if came_from[node] is not None:
+            x2, y2 = came_from[node]
+            
+            if (x2, y2) in came_from and (x, y) in came_from:
+                pygame.draw.line(screen, RED, (x * BLOCK_SIZE + BLOCK_SIZE // 2, y * BLOCK_SIZE + BLOCK_SIZE // 2),
+                                 (x2 * BLOCK_SIZE + BLOCK_SIZE // 2, y2 * BLOCK_SIZE + BLOCK_SIZE // 2), 2)
+               
+        pygame.display.update()
+
+    elapsed_time = time.time() - start_time
+    # round to 2 decimal places
+    elapsed_time = round(elapsed_time * 1000, 2)
+    elapsed_time = str(elapsed_time)
+    # display the time it took to reach the goal
+    font = pygame.font.SysFont("Arial", 20)
+    text = font.render('Search took ' + elapsed_time + 'ms', True, WHITE)
+    screen.blit(text, (1010,10))
+    pygame.display.update()
+    
+    for i in range(len(path) - 1):
+        node = path[i]
+        next_node = path[i + 1]
+        x1, y1 = node
+        x2, y2 = next_node
+        pygame.draw.line(screen, GREEN, (x1 * BLOCK_SIZE + BLOCK_SIZE // 2, y1 * BLOCK_SIZE + BLOCK_SIZE // 2),
+                         (x2 * BLOCK_SIZE + BLOCK_SIZE // 2, y2 * BLOCK_SIZE + BLOCK_SIZE // 2), 5)
+        pygame.display.update()
+        pygame.time.delay(10)   
+        
+    # this part will be used to make the blue square move along the path
+    # create a new blue square in the next node and fill the old one with white
+    # then update the display
+    # then wait for 20 ms
+    for i in range(len(path) - 1):
+        node = path[i]
+        next_node = path[i + 1]
+        x1, y1 = node
+        x2, y2 = next_node
+        rect = pygame.Rect(x1 * BLOCK_SIZE, y1 * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
+        pygame.draw.rect(screen, WHITE, rect)
+        pygame.draw.rect(screen, BLACK, rect, 1)
+        
+        rect = pygame.Rect(x2 * BLOCK_SIZE, y2 * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
+        pygame.draw.rect(screen, BLUE, rect)
+        pygame.display.update()
+        pygame.time.delay(40)
+
+def get_mouse_click(screen, map, message):
+    pygame.draw.rect(screen, BLACK, (1010, 10, 200, 30))
+    # display message to user
+    font = pygame.font.SysFont("Arial", 20)
+    text = font.render(message, True, WHITE)
+    screen.blit(text, (1010,10))
+    pygame.display.update()
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                x = pos[0] // BLOCK_SIZE
+                y = pos[1] // BLOCK_SIZE
+                if map[x][y] != 1:
+                    # delete message
+                    pygame.draw.rect(screen, BLACK, (1010, 10, 200, 30))
+
+                    return x, y
+
     
 def main():
     pygame.init()
@@ -143,24 +226,31 @@ def main():
 
     # Generate a random map with obstacles
     map = generate_map()
+    
+    # display temporary grid to allow user to choose nodes
+    draw_grid(screen, map, (0, 0), (0, 0), {}, [])
+    pygame.display.update()
 
-    # Set start and goal nodes
-    start = (0, 0)
-    goal = (GRID_SIZE - 1, GRID_SIZE - 1)
+    # Set start and goal nodes by getting a mouse click
+    start = get_mouse_click(screen, map, "Choose start node")
+    draw_grid(screen, map, (0, 0), (0, 0), {}, [])
+    pygame.display.update()
+    goal = get_mouse_click(screen, map, "Choose goal node")
+    # start = (0, 0)
+    # goal = (GRID_SIZE - 1, GRID_SIZE - 1)
+    
 
     came_from, cost_so_far = a_star(start, goal, map)
     path = reconstruct_path(came_from, start, goal)
     print("Path: ", path)
 
+    draw_grid(screen, map, start, goal, came_from, path)
     running = True
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
                 pygame.quit()
-
-        draw_grid(screen, map, start, goal, came_from, path)
-        pygame.display.update()
 
 if __name__ == "__main__":
     main()
