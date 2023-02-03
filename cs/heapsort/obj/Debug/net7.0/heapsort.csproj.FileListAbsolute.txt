@@ -1,0 +1,15 @@
+C:\Users\Michael\Desktop\Test\CSharp\heapsort\bin\Debug\net7.0\heapsort.exe
+C:\Users\Michael\Desktop\Test\CSharp\heapsort\bin\Debug\net7.0\heapsort.deps.json
+C:\Users\Michael\Desktop\Test\CSharp\heapsort\bin\Debug\net7.0\heapsort.runtimeconfig.json
+C:\Users\Michael\Desktop\Test\CSharp\heapsort\bin\Debug\net7.0\heapsort.dll
+C:\Users\Michael\Desktop\Test\CSharp\heapsort\bin\Debug\net7.0\heapsort.pdb
+C:\Users\Michael\Desktop\Test\CSharp\heapsort\obj\Debug\net7.0\heapsort.csproj.AssemblyReference.cache
+C:\Users\Michael\Desktop\Test\CSharp\heapsort\obj\Debug\net7.0\heapsort.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Michael\Desktop\Test\CSharp\heapsort\obj\Debug\net7.0\heapsort.AssemblyInfoInputs.cache
+C:\Users\Michael\Desktop\Test\CSharp\heapsort\obj\Debug\net7.0\heapsort.AssemblyInfo.cs
+C:\Users\Michael\Desktop\Test\CSharp\heapsort\obj\Debug\net7.0\heapsort.csproj.CoreCompileInputs.cache
+C:\Users\Michael\Desktop\Test\CSharp\heapsort\obj\Debug\net7.0\heapsort.dll
+C:\Users\Michael\Desktop\Test\CSharp\heapsort\obj\Debug\net7.0\refint\heapsort.dll
+C:\Users\Michael\Desktop\Test\CSharp\heapsort\obj\Debug\net7.0\heapsort.pdb
+C:\Users\Michael\Desktop\Test\CSharp\heapsort\obj\Debug\net7.0\heapsort.genruntimeconfig.cache
+C:\Users\Michael\Desktop\Test\CSharp\heapsort\obj\Debug\net7.0\ref\heapsort.dll
