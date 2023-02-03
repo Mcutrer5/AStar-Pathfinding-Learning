@@ -3,11 +3,11 @@ import random
 import heapq
 import time
 
-WIDTH = 1200
+WIDTH = 1800
 HEIGHT = 1000
-OBSTACLE_PROBABILITY = 0.2
+OBSTACLE_PROBABILITY = 0.1
 BLOCK_SIZE = 25
-GRID_SIZE = 40
+GRID_SIZE = 60
 NUM_OBSTACLES = 30
 
 WHITE = (255, 255, 255)
@@ -98,22 +98,25 @@ def a_star(start, goal, map):
     came_from[start] = None
     cost_so_far[start] = 0
 
+    startTime = time.time()
     while heap:
         current = heapq.heappop(heap)[1]
 
         if current == goal:
-            print("Found path: ", current)
             break
 
         for next_node in neighbors(current, map):
             new_cost = cost_so_far[current] + 1
             if next_node not in cost_so_far or new_cost < cost_so_far[next_node]:
                 cost_so_far[next_node] = new_cost
-                print("Adding to heap: ", next_node, " with cost: ", new_cost)
                 priority = new_cost + heuristic(goal, next_node)
                 heapq.heappush(heap, (priority, next_node))
                 came_from[next_node] = current
-
+    elapsed_time = time.time() - startTime
+    # round to 2 decimal places
+    elapsed_time = round(elapsed_time * 1000, 2)
+    elapsed_time = str(elapsed_time)
+    print("Time taken: ", elapsed_time, "ms")
     return came_from, cost_so_far
 
 def reconstruct_path(came_from, start, goal):
@@ -141,15 +144,6 @@ def base_grid(screen, map):
                 pygame.draw.rect(screen, BLACK, rect, 1)
 
 def draw_grid(screen, map, start, goal, came_from, path):
-    # for x in range(GRID_SIZE):
-    #     for y in range(GRID_SIZE):
-    #         rect = pygame.Rect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
-    #         if map[x][y] == 1:
-    #             pygame.draw.rect(screen, BLACK, rect)
-    #         else:
-    #             pygame.draw.rect(screen, WHITE, rect)
-                
-    #         pygame.draw.rect(screen, BLACK, rect, 1)
     base_grid(screen, map)
             
     rect = pygame.Rect(start[0] * BLOCK_SIZE, start[1] * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
@@ -170,6 +164,7 @@ def draw_grid(screen, map, start, goal, came_from, path):
                                  (x2 * BLOCK_SIZE + BLOCK_SIZE // 2, y2 * BLOCK_SIZE + BLOCK_SIZE // 2), 2)
                
         pygame.display.update()
+        # pygame.time.wait(5)
 
     elapsed_time = time.time() - start_time
     # round to 2 decimal places
@@ -189,7 +184,7 @@ def draw_grid(screen, map, start, goal, came_from, path):
         pygame.draw.line(screen, GREEN, (x1 * BLOCK_SIZE + BLOCK_SIZE // 2, y1 * BLOCK_SIZE + BLOCK_SIZE // 2),
                          (x2 * BLOCK_SIZE + BLOCK_SIZE // 2, y2 * BLOCK_SIZE + BLOCK_SIZE // 2), 5)
         pygame.display.update()
-        pygame.time.delay(10)
+        # pygame.time.delay(10)
         
         
         
@@ -203,13 +198,13 @@ def draw_grid(screen, map, start, goal, came_from, path):
         pygame.draw.rect(screen, WHITE, rect)
         pygame.draw.rect(screen, BLACK, rect, 1)
         rect = pygame.Rect(x1 * BLOCK_SIZE, y1 * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
-        duration = .1 # seconds
+        # duration = .1 # seconds
         start_pos = (x1 * BLOCK_SIZE, y1 * BLOCK_SIZE)
         end_pos = (x2 * BLOCK_SIZE, y2 * BLOCK_SIZE)
-        for new_rect in interpolate_rect(rect, start_pos, end_pos, duration):
+        for new_rect in interpolate_rect(rect, start_pos, end_pos, 0):
             pygame.draw.rect(screen, BLUE, new_rect)
             pygame.display.update()
-            pygame.time.delay(16)
+            # pygame.time.delay(8)
             
         # after the update, let's call the draw_grid function to restore the grid 
         # and draw the goal node in red again while setting the start node empty
@@ -219,8 +214,22 @@ def draw_grid(screen, map, start, goal, came_from, path):
         pygame.display.update()
 
         # pygame.display.update()
-        # pygame.time.delay(40)
-        
+        pygame.time.delay(40)
+
+    # when finished, draw the goal node in blue
+    x, y = goal
+    rect = pygame.Rect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
+    pygame.draw.rect(screen, BLUE, rect)
+    pygame.display.update()    
+
+    # call mouse click function and restart draw_grid function
+    start = goal
+    goal = get_mouse_click(screen, map, "Choose a new goal node")
+    came_from, cost_so_far = a_star(start, goal, map)
+    path = reconstruct_path(came_from, start, goal)
+    draw_grid(screen, map, start, goal, came_from, path)
+
+
 def interpolate_rect(rect, start_pos, end_pos, duration):
     start_time = time.time()
     current_time = time.time()
